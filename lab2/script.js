@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleCommunityBtn = document.getElementById('toggle-community');
     const communitySection = document.getElementById('community');
     const form = document.querySelector('.goal-form');
+    const goalsGrid = document.querySelector('.goals-grid');
 
 
     /* =====================================================
@@ -35,18 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // forEach + querySelectorAll
-    goalCards.forEach((card, index) => {
-        const title = card.querySelector('h3');
-        title.textContent = `${index + 1}. ${title.textContent}`;
-    });
-
-
     /* =====================================================
        КНОПКА "ВИКОНАНО" + map / filter
     ===================================================== */
 
-    goalCards.forEach((card, index) => {
+    function attachCompleteButton(card, index) {
         const btn = document.createElement('button');
         btn.textContent = 'Виконано';
         btn.className = 'btn-submit';
@@ -61,6 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         card.appendChild(btn);
+    }
+
+    goalCards.forEach((card, index) => {
+        attachCompleteButton(card, index);
     });
 
 
@@ -116,13 +114,75 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const title = document.getElementById('goal-title').value.trim();
+        const deadline = document.getElementById('goal-deadline').value;
+        const imageUrl = document.getElementById('goal-image').value.trim();
+        const stepsRaw = document.getElementById('goal-steps').value;
+        const motivation = document.getElementById('goal-motivation').value.trim();
 
         if (title === '') {
             alert('❌ Назва цілі не може бути порожньою');
             return;
         }
 
+        const steps = stepsRaw
+            .split('\n')
+            .map(step => step.trim())
+            .filter(step => step !== '');
+
+        if (steps.length === 0) {
+            alert('❌ Додайте хоча б один крок (кожен з нового рядка)');
+            return;
+        }
+
         goals.push({ title, completed: false });
+
+        const newCard = document.createElement('article');
+        newCard.className = 'goal-card';
+
+        if (goals.length % 2 !== 0) {
+            newCard.style.backgroundColor = '#f9f9ff';
+        } else {
+            newCard.style.backgroundColor = '#ffffff';
+        }
+
+        const image = document.createElement('img');
+        image.src = imageUrl || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600';
+        image.alt = title;
+
+        const heading = document.createElement('h3');
+        heading.textContent = `🎯 ${title}`;
+
+        const deadlineParagraph = document.createElement('p');
+        deadlineParagraph.innerHTML = `<strong>Дедлайн:</strong> ${deadline || 'Не вказано'}`;
+
+        const checklist = document.createElement('ul');
+        checklist.className = 'goal-checklist';
+
+        steps.forEach((step) => {
+            const listItem = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+
+            label.appendChild(checkbox);
+            label.append(` ${step}`);
+            listItem.appendChild(label);
+            checklist.appendChild(listItem);
+        });
+
+        const motivationParagraph = document.createElement('p');
+        motivationParagraph.className = 'goal-motivation';
+        motivationParagraph.innerHTML = `<strong>Мотивація:</strong> ${motivation || 'Немає'}`;
+
+        newCard.appendChild(image);
+        newCard.appendChild(heading);
+        newCard.appendChild(deadlineParagraph);
+        newCard.appendChild(checklist);
+        newCard.appendChild(motivationParagraph);
+
+        goalsGrid.appendChild(newCard);
+        attachCompleteButton(newCard, goals.length - 1);
+
         alert('✅ Ціль додано!');
 
         form.reset();

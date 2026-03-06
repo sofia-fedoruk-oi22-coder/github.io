@@ -1,3 +1,5 @@
+/* БАЗОВІ СТИЛІ */
+/* Загальні налаштування сторінки: шрифт, фон і базовий колір тексту */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
@@ -5,12 +7,16 @@ body {
     color: #333;
 }
 
+/* АДАПТИВНІ ЗОБРАЖЕННЯ */
+/* Усі зображення не виходять за межі контейнера та мають округлені кути */
 img {
     max-width: 100%;
     height: auto;
     border-radius: 10px;
 }
 
+/* HEADER */
+/* Верхня панель сайту з назвою та меню навігації */
 header {
     background-color: #3f51b5;
     color: white;
@@ -18,6 +24,7 @@ header {
     padding: 15px 0;
 }
 
+/* Горизонтальне меню без маркерів */
 nav ul {
     list-style: none;
     padding: 0;
@@ -26,35 +33,40 @@ nav ul {
     gap: 25px;
 }
 
+/* Посилання навігації */
 nav a {
-    display: inline-block;
     color: white;
     text-decoration: none;
     font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 6px;
 }
 
+/* Ефект при наведенні на пункт меню */
 nav a:hover {
     text-decoration: underline;
 }
 
+/* MAIN */
+/* Основний контейнер контенту з центруванням та обмеженням ширини */
 main {
     max-width: 1200px;
     margin: 40px auto;
     padding: 0 20px;
 }
 
+/* Відступи між секціями сторінки */
 section {
     margin-bottom: 50px;
 }
 
+/* Стиль заголовків другого рівня для всіх секцій */
 h2 {
     border-bottom: 2px solid #3f51b5;
     display: inline-block;
     padding-bottom: 6px;
 }
 
+/* CSS GRID */
+/* Сітка карток цілей з адаптивною кількістю колонок */
 .goals-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -62,6 +74,7 @@ h2 {
     margin-top: 25px;
 }
 
+/* Картка окремої цілі */
 .goal-card {
     background-color: white;
     padding: 20px;
@@ -70,63 +83,45 @@ h2 {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Легкий "підйом" картки при наведенні */
 .goal-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 20px rgba(0,0,0,0.1);
 }
 
+/* Колір і відступ заголовка картки */
 .goal-card h3 {
     margin-top: 0;
     color: #3f51b5;
 }
 
+/* Чеклист підзадач в межах картки цілі */
 .goal-checklist {
     list-style: none;
     padding: 0;
     margin: 14px 0 10px;
 }
 
+/* Відступ між пунктами чеклиста */
 .goal-checklist li {
     margin-bottom: 8px;
 }
 
+/* Вирівнювання чекбокса та підпису в один ряд */
 .goal-checklist label {
     display: inline-flex;
     align-items: center;
     gap: 8px;
 }
 
+/* Короткий текст мотивації під чеклистом */
 .goal-motivation {
     margin: 0;
     font-size: 14px;
 }
 
-.goal-actions {
-    margin-top: 12px;
-}
-
-.goal-complete-btn {
-    background-color: #3f51b5;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.goal-complete-btn:hover {
-    background-color: #36459b;
-}
-
-.goal-complete-btn.done {
-    background-color: #2e7d32;
-}
-
-.goal-card.goal-completed {
-    border: 2px solid #2e7d32;
-}
-
+/* ДОДАТИ ЦІЛЬ */
+/* Контейнер форми додавання нової цілі */
 .goal-form {
     background-color: white;
     padding: 24px;
@@ -136,18 +131,21 @@ h2 {
     max-width: 600px;
 }
 
+/* Базовий блок одного поля форми: label + input/textarea */
 .form-group {
     margin-bottom: 16px;
     display: flex;
     flex-direction: column;
 }
 
+/* Підписи полів форми */
 .form-group label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
 }
 
+/* Поля вводу та текстові області */
 .form-group input,
 .form-group textarea {
     width: 100%;
@@ -159,6 +157,7 @@ h2 {
     font-family: inherit;
 }
 
+/* Підсвічування активного поля при фокусі */
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
@@ -166,6 +165,7 @@ h2 {
     box-shadow: 0 0 0 3px rgba(63,81,181,0.15);
 }
 
+/* Кнопка відправки форми */
 .btn-submit {
     background-color: #3f51b5;
     color: white;
@@ -177,10 +177,13 @@ h2 {
     cursor: pointer;
 }
 
+/* Стан кнопки при наведенні */
 .btn-submit:hover {
     background-color: #36459b;
 }
 
+/* ПРОГРЕС */
+/* Елемент списку досягнень у секції прогресу */
 .progress-item {
     background-color: white;
     padding: 15px;
@@ -189,58 +192,31 @@ h2 {
     border-radius: 6px;
 }
 
-.interaction-panel,
-.daily-timer-panel,
-.feedback-item,
+/* СПІЛЬНОТА */
+/* Картка коментаря користувача */
 .comment {
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.interaction-panel,
-.daily-timer-panel {
-    padding: 16px;
-    margin-bottom: 12px;
-}
-
-.daily-timer-panel h3 {
-    margin-top: 0;
-    color: #3f51b5;
-}
-
-#menu-output {
-    margin: 12px 0 0;
-    font-size: 15px;
-    color: #2f3b84;
-}
-
-nav a.menu-active {
-    text-decoration: underline;
-}
-
-.form-status {
-    margin: 12px 0 0;
-    font-size: 14px;
-    color: #2f3b84;
-}
-
-.comment {
     padding: 14px;
     margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     font-size: 15px;
 }
 
+/* Ім'я автора коментаря */
 .comment h4 {
     margin: 0 0 6px;
     font-size: 17px;
 }
 
+/* Текст коментаря без зайвих зовнішніх відступів */
 .comment p {
     margin: 0;
     font-size: 15px;
 }
 
+/* FOOTER */
+/* Нижній колонтитул з контактною інформацією */
 footer {
     background-color: #3f51b5;
     color: white;
@@ -250,10 +226,15 @@ footer {
     font-size: 14px;
 }
 
+/* Компактні відступи між рядками у footer */
 footer p {
     margin: 4px 0;
 }
 
+/* ===== MEDIA QUERIES ===== */
+
+/* Планшети */
+/* Легке зменшення типографіки та полів на середніх екранах */
 @media (max-width: 768px) {
     h1 {
         font-size: 24px;
@@ -268,6 +249,8 @@ footer p {
     }
 }
 
+/* Мобільні */
+/* Мобільна адаптація: вертикальне меню та компактніші блоки */
 @media (max-width: 480px) {
     nav ul {
         flex-direction: column;
