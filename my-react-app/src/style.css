@@ -1,0 +1,555 @@
+/* БАЗОВІ СТИЛІ */
+/* Загальні налаштування сторінки: шрифт, фон і базовий колір тексту */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: #f4f6fb;
+    color: #333;
+}
+
+/* АДАПТИВНІ ЗОБРАЖЕННЯ */
+/* Усі зображення не виходять за межі контейнера та мають округлені кути */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+/* HEADER */
+/* Верхня панель сайту з назвою та меню навігації */
+header {
+    background-color: #3f51b5;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;
+}
+
+.header-top-row {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+}
+
+.header-top-row h1 {
+    margin: 0;
+    text-align: center;
+}
+
+.account-menu-wrap {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.account-icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #dbe3ff;
+    background: #ffffff;
+    color: #3f51b5;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.account-dropdown {
+    position: absolute;
+    right: 0;
+    top: 52px;
+    width: 300px;
+    background: #ffffff;
+    color: #333;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    z-index: 20;
+    text-align: left;
+}
+
+.account-dropdown p {
+    margin: 0 0 10px;
+    font-size: 14px;
+}
+
+.account-dropdown .btn-submit {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.account-dropdown .auth-message {
+    margin: 8px 0;
+}
+
+/* Горизонтальне меню без маркерів */
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+/* Посилання навігації */
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Ефект при наведенні на пункт меню */
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* MAIN */
+/* Основний контейнер контенту з центруванням та обмеженням ширини */
+main {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.section-nav {
+    margin-bottom: 24px;
+}
+
+.section-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.section-nav a {
+    display: inline-block;
+    text-decoration: none;
+    color: #3f51b5;
+    border: 1px solid #cdd5ea;
+    background-color: white;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+}
+
+.section-nav a:hover {
+    background-color: #eef2ff;
+}
+
+/* Відступи між секціями сторінки */
+section {
+    margin-bottom: 50px;
+}
+
+/* Стиль заголовків другого рівня для всіх секцій */
+h2 {
+    border-bottom: 2px solid #3f51b5;
+    display: inline-block;
+    padding-bottom: 6px;
+}
+
+/* CSS GRID */
+/* Сітка карток цілей з адаптивною кількістю колонок */
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 340px));
+    justify-content: center;
+    align-items: start;
+    gap: 25px;
+    margin-top: 25px;
+}
+
+    .goals-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .goal-list-item {
+        list-style: none;
+    }
+
+    .goal-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+/* Картка окремої цілі */
+.goal-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+    .goal-details {
+        background-color: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+    }
+
+    .goal-details-image-wrap {
+        text-align: center;
+        margin: 18px 0;
+    }
+
+    .goal-details-image-wrap img {
+        max-width: 85%;
+    }
+
+    .goal-details-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+.goal-card-completed {
+    opacity: 0.65;
+    filter: grayscale(20%);
+}
+
+/* Легкий "підйом" картки при наведенні */
+.goal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+}
+
+/* Колір і відступ заголовка картки */
+.goal-card h3 {
+    margin-top: 0;
+    color: #3f51b5;
+    overflow-wrap: anywhere;
+}
+
+.goal-card p {
+    overflow-wrap: anywhere;
+}
+
+.goal-card img {
+    margin-bottom: 12px;
+}
+
+/* Чеклист підзадач в межах картки цілі */
+.goal-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 10px;
+}
+
+/* Відступ між пунктами чеклиста */
+.goal-checklist li {
+    margin-bottom: 8px;
+}
+
+/* Вирівнювання чекбокса та підпису в один ряд */
+.goal-checklist label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Короткий текст мотивації під чеклистом */
+.goal-motivation {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ДОДАТИ ЦІЛЬ */
+/* Контейнер форми додавання нової цілі */
+.goal-form {
+    background-color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+    margin: 20px auto 0;
+    max-width: 600px;
+}
+
+/* Базовий блок одного поля форми: label + input/textarea */
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Підписи полів форми */
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+/* Поля вводу та текстові області */
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cdd5ea;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+/* Підсвічування активного поля при фокусі */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3f51b5;
+    box-shadow: 0 0 0 3px rgba(63,81,181,0.15);
+}
+
+/* Кнопка відправки форми */
+.btn-submit {
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Стан кнопки при наведенні */
+.btn-submit:hover {
+    background-color: #36459b;
+}
+
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.status-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.status-controls .btn-submit {
+    padding: 7px 12px;
+    font-size: 13px;
+}
+
+.status-chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+}
+
+.status-active {
+    background-color: #3f51b5;
+}
+
+.status-completed {
+    background-color: #2e7d32;
+}
+
+.status-postponed {
+    background-color: #757575;
+}
+
+.community-toggle {
+    margin-bottom: 16px;
+}
+
+/* ПРОГРЕС */
+/* Елемент списку досягнень у секції прогресу */
+.progress-item {
+    background-color: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 5px solid #3f51b5;
+    border-radius: 6px;
+}
+
+/* СПІЛЬНОТА */
+/* Картка коментаря користувача */
+.comment {
+    background-color: white;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    font-size: 15px;
+}
+
+/* Ім'я автора коментаря */
+.comment h4 {
+    margin: 0 0 6px;
+    font-size: 17px;
+}
+
+/* Текст коментаря без зайвих зовнішніх відступів */
+.comment p {
+    margin: 0;
+    font-size: 15px;
+}
+
+/* FOOTER */
+/* Нижній колонтитул з контактною інформацією */
+footer {
+    background-color: #3f51b5;
+    color: white;
+    text-align: center;
+    padding: 12px 10px;
+    margin-top: 35px;
+    font-size: 14px;
+}
+
+/* Компактні відступи між рядками у footer */
+footer p {
+    margin: 4px 0;
+}
+
+.auth-status {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auth-status p {
+    margin: 0;
+    color: white;
+}
+
+.auth-panel {
+    max-width: 700px;
+}
+
+.auth-mode-switch {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.auth-message {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.auth-success {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.auth-error {
+    background-color: #ffebee;
+    color: #b71c1c;
+}
+
+.api-response {
+    margin-top: 14px;
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.api-success {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+}
+
+.api-error {
+    background-color: #ffebee;
+    color: #b71c1c;
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Планшети */
+/* Легке зменшення типографіки та полів на середніх екранах */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    main {
+        padding: 0 15px;
+    }
+
+    .header-top-row {
+        align-items: flex-start;
+    }
+
+    .header-top-row h1 {
+        font-size: 22px;
+    }
+}
+
+/* Мобільні */
+/* Мобільна адаптація: вертикальне меню та компактніші блоки */
+@media (max-width: 480px) {
+    nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header-top-row {
+        padding: 0 12px;
+    }
+
+    .account-menu-wrap {
+        right: 12px;
+        top: 4px;
+        transform: none;
+    }
+
+    .account-dropdown {
+        width: 260px;
+        right: -8px;
+    }
+
+    .section-nav ul {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    p, li {
+        font-size: 14px;
+    }
+
+    .goal-card {
+        padding: 15px;
+    }
+
+    .goal-form {
+        padding: 16px;
+    }
+
+    .auth-status {
+        flex-direction: column;
+    }
+}
