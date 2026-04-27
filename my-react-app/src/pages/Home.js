@@ -287,7 +287,7 @@ function Home({ user }) {
 
       <section id="progress">
         <h2>Прогрес</h2>
-        <Progress goals={goals} />
+        <Progress goals={goals} user={user} />
         <p>{reminderInfo}</p>
       </section>
 

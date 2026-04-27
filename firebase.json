@@ -9,4 +9,16 @@
   "auth": {
     "providers": {}
   }
+
+  ,
+  "hosting": {
+    "public": "my-react-app/build",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
 }

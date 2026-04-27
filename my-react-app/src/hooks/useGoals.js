@@ -9,7 +9,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from 'firebase/firestore';
-import { firestoreDb } from '../services/firebaseClient';
+import { firestoreDb, getFreshIdToken } from '../services/firebaseClient';
 
 export default function useGoals(user) {
   const [goals, setGoals] = useState([]);
@@ -137,6 +137,38 @@ export default function useGoals(user) {
     }
 
     try {
+      // If marking as completed, try server-side endpoint first (records server timestamp)
+      if (updates && updates.status === 'completed') {
+        try {
+          const token = await getFreshIdToken(user);
+          const res = await fetch(`http://localhost:5000/api/goals/${goalId}/complete`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({}),
+          });
+
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => ({}));
+            throw new Error(errBody.error || errBody.message || `Server response ${res.status}`);
+          }
+
+          const updated = await res.json();
+
+          // Update local state with server result
+          setGoals((prevGoals) =>
+            prevGoals.map((g) => (g.id === goalId ? { ...g, ...updated } : g))
+          );
+
+          return true;
+        } catch (serverErr) {
+          console.error('Server complete endpoint failed, falling back to client update:', serverErr);
+          // fall through to client-side update
+        }
+      }
+
       const goalRef = doc(firestoreDb, 'goals', goalId);
 
       // Перевірити, що це автор цілі
@@ -146,7 +178,7 @@ export default function useGoals(user) {
         return false;
       }
 
-      // Оновити ціль
+      // Оновити ціль (client-side fallback)
       await updateDoc(goalRef, {
         ...updates,
         updatedAt: new Date().toISOString(),

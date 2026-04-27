@@ -8,36 +8,77 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Firebase Admin SDK using your service account if present
+// Initialize Firebase Admin SDK using your service account if present.
+// Support either a local `serviceAccountKey.json` file or a FIREBASE_SERVICE_ACCOUNT
+// environment variable containing the JSON (raw or base64-encoded).
 const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
 let firebaseInitialized = false;
 let firestoreDb = null;
-if (fs.existsSync(serviceAccountPath)) {
-  try {
-    const serviceAccount = require(serviceAccountPath);
-    const projectId = serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID;
-    const databaseURL = process.env.FIREBASE_DATABASE_URL || `https://${projectId}.firebaseio.com`;
+// Diagnostics: track how the service account was provided (but never store the secret)
+let serviceAccountSource = null; // 'file' | 'env-raw' | 'env-b64' | null
+let firebaseProjectId = null;
 
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId,
-      databaseURL,
-    });
+const initFirebaseAdmin = () => {
+  let serviceAccount = null;
 
-    // create firestore instance once
-    firestoreDb = admin.firestore();
-    firebaseInitialized = true;
-    console.log('Firebase Admin initialized for project:', projectId);
-    console.log('Admin app options:', admin.app().options && {
-      projectId: admin.app().options.projectId,
-      databaseURL: admin.app().options.databaseURL,
-    });
-  } catch (err) {
-    console.error('Failed to initialize Firebase Admin:', err && err.stack ? err.stack : err);
+  if (fs.existsSync(serviceAccountPath)) {
+    try {
+      serviceAccount = require(serviceAccountPath);
+      serviceAccountSource = 'file';
+      console.log('Loaded serviceAccountKey.json from project root.');
+    } catch (err) {
+      console.error('Failed to load serviceAccountKey.json:', err && err.stack ? err.stack : err);
+    }
   }
-} else {
-  console.log('serviceAccountKey.json not found — Firebase Admin not initialized');
-}
+
+  if (!serviceAccount && process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    try {
+      // Try raw JSON first
+      serviceAccount = JSON.parse(raw);
+      serviceAccountSource = 'env-raw';
+      console.log('Using FIREBASE_SERVICE_ACCOUNT env var (raw JSON).');
+    } catch (errRaw) {
+      try {
+        // Try base64 encoded JSON
+        const decoded = Buffer.from(raw, 'base64').toString('utf8');
+        serviceAccount = JSON.parse(decoded);
+        serviceAccountSource = 'env-b64';
+        console.log('Using FIREBASE_SERVICE_ACCOUNT env var (base64-decoded).');
+      } catch (errB64) {
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT env var as JSON or base64 JSON:', errB64 && errB64.stack ? errB64.stack : errB64);
+      }
+    }
+  }
+
+  if (serviceAccount) {
+    try {
+      const projectId = serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID;
+      const databaseURL = process.env.FIREBASE_DATABASE_URL || `https://${projectId}.firebaseio.com`;
+
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId,
+        databaseURL,
+      });
+
+      firestoreDb = admin.firestore();
+      firebaseInitialized = true;
+      firebaseProjectId = projectId || null;
+      console.log('Firebase Admin initialized for project:', projectId);
+      console.log('Admin app options:', admin.app().options && {
+        projectId: admin.app().options.projectId,
+        databaseURL: admin.app().options.databaseURL,
+      });
+    } catch (err) {
+      console.error('Failed to initialize Firebase Admin:', err && err.stack ? err.stack : err);
+    }
+  } else {
+    console.log('No service account found — Firebase Admin not initialized. Provide serviceAccountKey.json or FIREBASE_SERVICE_ACCOUNT env var.');
+  }
+};
+
+initFirebaseAdmin();
 
 app.get("/api/message", (req, res) => {
   res.json({ message: "Hello from the backend!" });
@@ -124,6 +165,158 @@ app.get('/api/users', async (req, res) => {
     console.error('GET /api/users error:', err && err.stack ? err.stack : err);
     res.status(500).json({ error: err && err.message ? err.message : String(err) });
   }
+});
+
+// Get completed goals for authenticated user filtered by optional date range
+// Query params: ?from=YYYY-MM-DD&to=YYYY-MM-DD
+app.get('/api/completed-goals', verifyToken, async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  const uid = req.user && req.user.uid;
+  if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { from, to } = req.query || {};
+
+  try {
+    // Fetch completed goals for user and filter by date in application code
+    const snapshot = await firestoreDb.collection('goals')
+      .where('createdBy', '==', uid)
+      .where('status', '==', 'completed')
+      .get();
+
+    const results = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data() || {};
+
+      // completedAt may be a Firestore Timestamp, an ISO string, or missing (fallback to updatedAt)
+      const ts = data.completedAt || data.updatedAt || null;
+      let completedDate = null;
+      if (ts && typeof ts.toDate === 'function') {
+        completedDate = ts.toDate();
+      } else if (typeof ts === 'string') {
+        const parsed = new Date(ts);
+        if (!Number.isNaN(parsed.getTime())) completedDate = parsed;
+      } else if (ts && ts.seconds) {
+        completedDate = new Date(ts.seconds * 1000);
+      }
+
+      let accept = true;
+      if (from) {
+        const fromDate = new Date(from);
+        fromDate.setHours(0,0,0,0);
+        if (!completedDate || completedDate < fromDate) accept = false;
+      }
+      if (to) {
+        const toDate = new Date(to);
+        toDate.setHours(23,59,59,999);
+        if (!completedDate || completedDate > toDate) accept = false;
+      }
+
+      if (accept) {
+        results.push({ id: doc.id, ...data, completedAt: completedDate ? completedDate.toISOString() : null });
+      }
+    });
+
+    res.json(results);
+  } catch (err) {
+    console.error('GET /api/completed-goals error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// Mark a goal as completed and record completion time (protected)
+app.post('/api/goals/:id/complete', verifyToken, async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  const uid = req.user && req.user.uid;
+  const goalId = req.params && req.params.id;
+  if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+  if (!goalId) return res.status(400).json({ error: 'Goal id is required' });
+
+  try {
+    const ref = firestoreDb.collection('goals').doc(goalId);
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(404).json({ error: 'Goal not found' });
+
+    const data = snap.data() || {};
+    if (data.createdBy !== uid) return res.status(403).json({ error: 'Forbidden' });
+
+    await ref.update({
+      status: 'completed',
+      completedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const updated = await ref.get();
+    res.json({ id: updated.id, ...updated.data() });
+  } catch (err) {
+    console.error('POST /api/goals/:id/complete error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// --- Debug endpoints (non-sensitive) ---
+app.get('/api/debug/env', (req, res) => {
+  try {
+    const buildPathCheck = path.join(__dirname, 'my-react-app', 'build');
+    const buildExists = fs.existsSync(buildPathCheck);
+    // Do not return secret contents — only presence and source
+    const projectId = (() => {
+      try {
+        return admin.apps && admin.apps.length && admin.app().options ? admin.app().options.projectId : firebaseProjectId;
+      } catch (e) {
+        return firebaseProjectId || null;
+      }
+    })();
+
+    res.json({
+      firebaseInitialized,
+      serviceAccountSource: serviceAccountSource || null,
+      hasFIREBASE_SERVICE_ACCOUNT_env: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      firebaseProjectId: projectId || null,
+      buildExists,
+    });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Allow on-demand re-init from current env (useful after adding secrets without full restart)
+app.post('/api/debug/reinit', (req, res) => {
+  try {
+    // reset tracking vars and attempt init again
+    serviceAccountSource = null;
+    firebaseProjectId = null;
+    initFirebaseAdmin();
+    res.json({ ok: true, firebaseInitialized, serviceAccountSource, firebaseProjectId });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+// Root: serve index if build exists, otherwise show helpful message
+app.get('/', (req, res) => {
+  const buildPathCheck = path.join(__dirname, 'my-react-app', 'build');
+  if (fs.existsSync(buildPathCheck)) {
+    res.sendFile(path.join(buildPathCheck, 'index.html'));
+    return;
+  }
+
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`
+    <html>
+      <head><title>My Goals — Backend</title></head>
+      <body>
+        <h1>Backend running</h1>
+        <p>Frontend build not found on server.</p>
+        <p>Available API endpoints:</p>
+        <ul>
+          <li><a href="/api/message">/api/message</a></li>
+          <li><a href="/api/debug/env">/api/debug/env</a> (diagnostics)</li>
+          <li>/api/firestore/ping (requires Firebase service account)</li>
+        </ul>
+        <p>If you see 500 on Firestore endpoints, check that you've added <code>FIREBASE_SERVICE_ACCOUNT</code> correctly and redeployed.</p>
+      </body>
+    </html>
+  `);
 });
 
 // Serve static files: prefer the React build, fall back to a `public` folder
