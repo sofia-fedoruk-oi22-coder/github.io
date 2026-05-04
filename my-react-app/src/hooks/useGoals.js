@@ -11,6 +11,9 @@ import {
 } from 'firebase/firestore';
 import { firestoreDb, getFreshIdToken } from '../services/firebaseClient';
 
+// API base URL: prefer deploy-time env var, otherwise detect localhost for dev
+const apiBase = process.env.REACT_APP_API_URL || (typeof window !== 'undefined' && window.location && window.location.hostname && window.location.hostname.includes('localhost') ? 'http://localhost:5000' : '');
+
 export default function useGoals(user) {
   const [goals, setGoals] = useState([]);
   const [loadingGoals, setLoadingGoals] = useState(true);
@@ -141,7 +144,7 @@ export default function useGoals(user) {
       if (updates && updates.status === 'completed') {
         try {
           const token = await getFreshIdToken(user);
-          const res = await fetch(`http://localhost:5000/api/goals/${goalId}/complete`, {
+          const res = await fetch(`${apiBase}/api/goals/${goalId}/complete`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
