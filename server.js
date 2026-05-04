@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require('path');
 const fs = require('fs');
 const admin = require('firebase-admin');
+const https = require('https');
 
 const app = express();
 app.use(cors());
@@ -132,6 +133,146 @@ const verifyToken = async (req, res, next) => {
 // Protected route (only for authenticated users)
 app.get('/api/protected', verifyToken, (req, res) => {
   res.json({ message: 'You have accessed a protected route!', user: req.user });
+});
+
+// --- Auth endpoints (register / login / profile) ---
+// Register a new user using Firebase Admin (creates Auth user + Firestore user doc)
+app.post('/api/register', async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  const { email, password, displayName } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: 'email and password are required' });
+  try {
+    const userRecord = await admin.auth().createUser({ email, password, displayName });
+    const userDoc = {
+      uid: userRecord.uid,
+      email: userRecord.email,
+      displayName: displayName || '',
+      goalsIds: [],
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await firestoreDb.collection('users').doc(userRecord.uid).set(userDoc);
+    res.json({ uid: userRecord.uid, email: userRecord.email });
+  } catch (err) {
+    console.error('Register error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// Login (email/password) via Firebase Identity Toolkit REST API
+// Requires FIREBASE_API_KEY env var (or REACT_APP_FIREBASE_API_KEY)
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: 'email and password are required' });
+
+  const apiKey = process.env.FIREBASE_API_KEY || process.env.REACT_APP_FIREBASE_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'FIREBASE_API_KEY not configured on server' });
+
+  const postData = JSON.stringify({ email, password, returnSecureToken: true });
+  const options = {
+    hostname: 'identitytoolkit.googleapis.com',
+    path: `/v1/accounts:signInWithPassword?key=${apiKey}`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postData),
+    },
+  };
+
+  const reqHttps = https.request(options, (resp) => {
+    let data = '';
+    resp.on('data', (chunk) => { data += chunk; });
+    resp.on('end', () => {
+      try {
+        const parsed = data ? JSON.parse(data) : {};
+        if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          // returns idToken, refreshToken, expiresIn, localId (uid)
+          res.json(parsed);
+        } else {
+          res.status(resp.statusCode || 500).json(parsed);
+        }
+      } catch (e) {
+        console.error('Login parse error', e);
+        res.status(500).json({ error: 'Failed to parse login response' });
+      }
+    });
+  });
+
+  reqHttps.on('error', (e) => {
+    console.error('Login request error', e);
+    res.status(500).json({ error: e.message });
+  });
+
+  reqHttps.write(postData);
+  reqHttps.end();
+});
+
+// Get current user's profile (protected)
+app.get('/api/profile', verifyToken, async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  try {
+    const uid = req.user && req.user.uid;
+    if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+    const userRecord = await admin.auth().getUser(uid);
+    const userSnap = await firestoreDb.collection('users').doc(uid).get();
+    res.json({ auth: userRecord.toJSON(), profile: userSnap.exists ? userSnap.data() : null });
+  } catch (err) {
+    console.error('GET /api/profile error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// --- Goals API (server-side create & list for authenticated user) ---
+// Create a new goal (protected)
+app.post('/api/goals', verifyToken, async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  const uid = req.user && req.user.uid;
+  if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { title, deadline, motivation, steps, image } = req.body || {};
+  try {
+    const ref = firestoreDb.collection('goals').doc();
+    const newGoal = {
+      title: title || '',
+      deadline: deadline || null,
+      motivation: motivation || '',
+      status: 'active',
+      image: image || '',
+      steps: steps || [],
+      createdBy: uid,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await ref.set(newGoal);
+
+    // add goal id to user's goalsIds
+    const userRef = firestoreDb.collection('users').doc(uid);
+    await userRef.update({ goalsIds: admin.firestore.FieldValue.arrayUnion(ref.id) }).catch(async (e) => {
+      // if update fails (missing doc), create the user doc
+      await userRef.set({ goalsIds: [ref.id], createdAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    });
+
+    const snap = await ref.get();
+    res.json({ id: ref.id, ...snap.data() });
+  } catch (err) {
+    console.error('POST /api/goals error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// List goals for authenticated user
+app.get('/api/goals', verifyToken, async (req, res) => {
+  if (!firebaseInitialized || !firestoreDb) return res.status(500).json({ error: 'Firebase Admin / Firestore not initialized' });
+  const uid = req.user && req.user.uid;
+  if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const snapshot = await firestoreDb.collection('goals').where('createdBy', '==', uid).get();
+    const results = [];
+    snapshot.forEach((doc) => results.push({ id: doc.id, ...doc.data() }));
+    res.json(results);
+  } catch (err) {
+    console.error('GET /api/goals error:', err && err.stack ? err.stack : err);
+    res.status(500).json({ error: err && err.message ? err.message : String(err) });
+  }
 });
 
 // Firestore demo: write & read a doc
