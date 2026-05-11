@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import GoalCard from '../components/GoalCard';
 import Progress from '../components/Progress';
+import { CommunityPreview } from '../components/Community';
 import useGoals from '../hooks/useGoals';
 
 const DAILY_REMINDER_KEY = 'daily-goals-reminder-date';
@@ -252,6 +253,12 @@ function Home({ user, goToAuth }) {
         <h2>Прогрес</h2>
         <Progress goals={goals} />
         <p>{reminderInfo}</p>
+      </section>
+
+      <section id="community">
+        <h2>Спільнота</h2>
+        <p>Перші учасники спільноти та їхній прогрес.</p>
+        <CommunityPreview user={user} goToAuth={goToAuth} />
       </section>
 
     </main>

@@ -485,9 +485,27 @@ h2 {
     margin: 20px 0;
 }
 
+.community-back-row {
+    display: block;
+    margin-bottom: 16px;
+}
+
 .community-back-link {
     display: inline-block;
+    text-decoration: none;
+}
+
+.community-preview-list {
     margin-bottom: 16px;
+}
+
+.community-preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.community-preview-actions a {
     text-decoration: none;
 }
 

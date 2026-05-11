@@ -138,7 +138,9 @@ function Community({ user, goToAuth }) {
     return (
       <main>
         <section>
-          <Link className="btn-submit community-back-link" to="/community">Назад до спільноти</Link>
+          <div className="community-back-row">
+            <Link className="btn-submit community-back-link" to="/community">Назад до спільноти</Link>
+          </div>
           <h2>{selectedUser ? getDisplayName(selectedUser) : 'Профіль користувача'}</h2>
           {selectedUser?.email ? <p><strong>Email:</strong> {selectedUser.email}</p> : null}
           {selectedUser?.age ? <p><strong>Вік:</strong> {selectedUser.age}</p> : null}
@@ -199,6 +201,127 @@ function Community({ user, goToAuth }) {
         )}
       </section>
     </main>
+  );
+}
+
+export function CommunityPreview({ user, goToAuth }) {
+  const [users, setUsers] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [showAllUsers, setShowAllUsers] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadPreview = async () => {
+      if (!user || !firestoreDb) {
+        setUsers([]);
+        setGoals([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError('');
+
+        const usersSnapshot = await getDocs(collection(firestoreDb, 'users'));
+        const loadedUsers = usersSnapshot.docs
+          .map((docSnapshot) => ({
+            uid: docSnapshot.id,
+            ...docSnapshot.data(),
+          }))
+          .filter((profile) => profile.uid !== user.uid);
+
+        const goalsSnapshot = await getDocs(collection(firestoreDb, 'goals'));
+        const loadedGoals = goalsSnapshot.docs.map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data(),
+        }));
+
+        setUsers(loadedUsers);
+        setGoals(loadedGoals);
+      } catch (loadError) {
+        console.error('Failed to load community preview:', loadError);
+        setError(loadError.message || 'Не вдалося завантажити спільноту.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPreview();
+  }, [user]);
+
+  const statsByUser = useMemo(() => {
+    const stats = new Map();
+    users.forEach((profile) => {
+      stats.set(profile.uid, { total: 0, completed: 0, active: 0 });
+    });
+
+    goals.forEach((goal) => {
+      const current = stats.get(goal.createdBy);
+      if (!current) return;
+      current.total += 1;
+      if (goal.status === 'completed') current.completed += 1;
+      if (goal.status === 'active') current.active += 1;
+    });
+
+    return stats;
+  }, [users, goals]);
+
+  if (!user) {
+    return (
+      <div className="goal-form guest-auth-card">
+        <p>Увійдіть або зареєструйтеся, щоб переглядати учасників спільноти.</p>
+        <div className="guest-auth-actions">
+          <button className="btn-submit" type="button" onClick={() => goToAuth('login')}>Увійти</button>
+          <button className="btn-submit" type="button" onClick={() => goToAuth('register')}>Зареєструватися</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <p>Завантаження учасників...</p>;
+  }
+
+  if (error) {
+    return <p className="auth-message auth-error">{error}</p>;
+  }
+
+  const visibleUsers = showAllUsers ? users : users.slice(0, 3);
+
+  return (
+    <>
+      {visibleUsers.length ? (
+        <div className="community-list community-preview-list">
+          {visibleUsers.map((profile) => {
+            const stats = statsByUser.get(profile.uid) || { total: 0, completed: 0, active: 0 };
+
+            return (
+              <Link className="comment community-user-card" to={`/community/${profile.uid}`} key={profile.uid}>
+                <h4>{getDisplayName(profile)}</h4>
+                <p>{profile.email || 'Без email'}</p>
+                <div className="community-user-meta">
+                  <span>Цілей: {stats.total}</span>
+                  <span>Досягнень: {stats.completed}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <p>Інших користувачів поки немає.</p>
+      )}
+
+      <div className="community-preview-actions">
+        {users.length > 3 ? (
+          <button className="btn-submit" type="button" onClick={() => setShowAllUsers((prev) => !prev)}>
+            {showAllUsers ? 'Приховати повний перелік' : 'Показати повний перелік'}
+          </button>
+        ) : null}
+        <Link className="btn-submit" to="/community">Відкрити спільноту</Link>
+      </div>
+    </>
   );
 }
 
