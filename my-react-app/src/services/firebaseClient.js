@@ -15,11 +15,17 @@ const envConfig = {
   databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL || '',
 };
 
-// Prefer a local `src/firebaseConfig.js` when provided (useful for development),
-// otherwise fall back to environment variables.
-export const firebaseConfig = (localConfig && localConfig.apiKey)
-  ? localConfig
-  : envConfig;
+const hasLocalConfig = Boolean(
+  localConfig
+  && localConfig.apiKey
+  && localConfig.apiKey !== 'YOUR_API_KEY'
+);
+
+// Prefer deploy-time environment variables. Use local config only when it has
+// real values instead of the placeholder template.
+export const firebaseConfig = envConfig.apiKey
+  ? envConfig
+  : (hasLocalConfig ? localConfig : envConfig);
 
 export const hasFirebaseConfig = [
   firebaseConfig.apiKey,
