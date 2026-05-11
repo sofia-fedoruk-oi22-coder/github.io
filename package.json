@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npm --prefix my-react-app ci && npm --prefix my-react-app run build",
+    "build": "npm --prefix my-react-app install && npm --prefix my-react-app run build",
     "start": "node server.js"
   },
   "dependencies": {
