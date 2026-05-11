@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { apiUrl } from '../services/api';
 import { getFreshIdToken } from '../services/firebaseClient';
 
 function Progress({ goals, user }) {
@@ -19,11 +20,7 @@ function Progress({ goals, user }) {
         const to = end.toISOString().slice(0, 10);
         const token = await getFreshIdToken(user);
 
-        const baseUrl = process.env.REACT_APP_API_URL || ((typeof window !== 'undefined' && window.location && window.location.hostname && window.location.hostname.includes('localhost'))
-          ? 'http://localhost:5000'
-          : '');
-
-        const res = await fetch(`${baseUrl}/api/completed-goals?from=${from}&to=${to}`, {
+        const res = await fetch(apiUrl(`/api/completed-goals?from=${from}&to=${to}`), {
           headers: { Authorization: `Bearer ${token}` },
         });
 

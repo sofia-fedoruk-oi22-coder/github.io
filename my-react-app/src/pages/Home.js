@@ -3,6 +3,7 @@ import GoalCard from '../components/GoalCard';
 import Progress from '../components/Progress';
 import Community from '../components/Community';
 import useGoals from '../hooks/useGoals';
+import { apiUrl } from '../services/api';
 import { getFreshIdToken } from '../services/firebaseClient';
 
 const DAILY_REMINDER_KEY = 'daily-goals-reminder-date';
@@ -60,7 +61,7 @@ function Home({ user }) {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/message')
+    fetch(apiUrl('/api/message'))
       .then((response) => response.json())
       .then((data) => setServerMessage(data.message))
       .catch((err) => {
@@ -79,7 +80,7 @@ function Home({ user }) {
 
     try {
       const token = await getFreshIdToken(user);
-      const res = await fetch('http://localhost:5000/api/protected', {
+      const res = await fetch(apiUrl('/api/protected'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
