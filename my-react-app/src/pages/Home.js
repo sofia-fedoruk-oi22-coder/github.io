@@ -298,7 +298,7 @@ function Home({ user, goToAuth }) {
 
       <section id="progress">
         <h2>Прогрес</h2>
-        <Progress goals={goals} user={user} />
+        <Progress goals={goals} />
         <p>{reminderInfo}</p>
       </section>
 
