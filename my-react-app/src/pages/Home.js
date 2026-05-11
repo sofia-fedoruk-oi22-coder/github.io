@@ -3,8 +3,6 @@ import GoalCard from '../components/GoalCard';
 import Progress from '../components/Progress';
 import Community from '../components/Community';
 import useGoals from '../hooks/useGoals';
-import { apiUrl } from '../services/api';
-import { getFreshIdToken } from '../services/firebaseClient';
 
 const DAILY_REMINDER_KEY = 'daily-goals-reminder-date';
 
@@ -28,9 +26,6 @@ function Home({ user, goToAuth }) {
     image: '',
     stepsText: '',
   });
-  const [protectedData, setProtectedData] = useState(null);
-  const [protectedError, setProtectedError] = useState('');
-
   const filteredGoals = useMemo(() => {
     if (filterStatus === 'all') {
       return goals;
@@ -59,31 +54,6 @@ function Home({ user, goToAuth }) {
 
     return () => clearInterval(dailyCheck);
   }, []);
-
-  const fetchProtected = async () => {
-    setProtectedError('');
-    setProtectedData(null);
-    if (!user) {
-      setProtectedError('Користувач не автентифікований');
-      return;
-    }
-
-    try {
-      const token = await getFreshIdToken(user);
-      const res = await fetch(apiUrl('/api/protected'), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.message || `Помилка: ${res.status}`);
-      }
-      const data = await res.json();
-      setProtectedData(data);
-    } catch (err) {
-      console.error('Failed to fetch protected route', err);
-      setProtectedError(err.message || 'Не вдалося отримати захищені дані');
-    }
-  };
 
   const handleStatusChange = async (id, status) => {
     if (status === 'completed') {
@@ -167,23 +137,6 @@ function Home({ user, goToAuth }) {
             <button className="btn-submit" type="button" onClick={() => setShowDailyReminder(false)}>OK</button>
           </div>
         </div>
-      ) : null}
-
-      {user ? (
-      <section id="protected-api">
-        <h3>Захищені дані</h3>
-        {user ? (
-          <>
-            <button className="btn-submit" type="button" onClick={fetchProtected}>Запитати захищені дані</button>
-            {protectedError ? <p className="auth-message auth-error">{protectedError}</p> : null}
-            {protectedData ? (
-              <pre className="server-response">{JSON.stringify(protectedData, null, 2)}</pre>
-            ) : null}
-          </>
-        ) : (
-          <p>Увійдіть, щоб побачити захищені дані.</p>
-        )}
-      </section>
       ) : null}
 
       <section id="goals">
