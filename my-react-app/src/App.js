@@ -224,9 +224,7 @@ function App() {
         <Route
           path="/"
           element={(
-            <ProtectedRoute user={user} loadingAuth={loadingAuth}>
-              <Home user={user} />
-            </ProtectedRoute>
+            <Home user={user} goToAuth={goToAuth} />
           )}
         />
         <Route path="/about" element={<About />} />

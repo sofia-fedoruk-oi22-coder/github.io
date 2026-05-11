@@ -8,7 +8,7 @@ import { getFreshIdToken } from '../services/firebaseClient';
 
 const DAILY_REMINDER_KEY = 'daily-goals-reminder-date';
 
-function Home({ user }) {
+function Home({ user, goToAuth }) {
   const {
     goals,
     loadingGoals,
@@ -175,6 +175,7 @@ function Home({ user }) {
         </section>
       ) : null}
 
+      {user ? (
       <section id="protected-api">
         <h3>Захищені дані</h3>
         {user ? (
@@ -189,10 +190,15 @@ function Home({ user }) {
           <p>Увійдіть, щоб побачити захищені дані.</p>
         )}
       </section>
+      ) : null}
 
       <section id="goals">
         <h2>Мої цілі</h2>
         <p>Створюй цілі, встановлюй дедлайни та відстежуй свій шлях до успіху.</p>
+
+        {!user ? (
+          <p className="guest-note">Увійдіть або зареєструйтеся, щоб додавати та зберігати власні цілі.</p>
+        ) : null}
 
         {goalsError ? (
           <p className="auth-message auth-error">{goalsError}</p>
@@ -223,6 +229,7 @@ function Home({ user }) {
       <section id="add-goal">
         <h2>Додати ціль</h2>
         <p>Опишіть нову ціль і створіть чіткий план дій для її досягнення.</p>
+        {user ? (
         <form className="goal-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="goal-title">Назва цілі:</label>
@@ -284,6 +291,15 @@ function Home({ user }) {
 
           <button className="btn-submit" type="submit">Зберегти ціль</button>
         </form>
+        ) : (
+          <div className="goal-form guest-auth-card">
+            <p>Авторизуйтеся, щоб створити ціль і зберегти її у своєму профілі.</p>
+            <div className="guest-auth-actions">
+              <button className="btn-submit" type="button" onClick={() => goToAuth('login')}>Увійти</button>
+              <button className="btn-submit" type="button" onClick={() => goToAuth('register')}>Зареєструватися</button>
+            </div>
+          </div>
+        )}
       </section>
 
       <section id="progress">
