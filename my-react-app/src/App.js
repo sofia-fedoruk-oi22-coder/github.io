@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
 import GoalDetails from './pages/GoalDetails';
+import Community from './components/Community';
 import useAuth from './hooks/useAuth';
 import useGoals from './hooks/useGoals';
 
@@ -211,6 +212,7 @@ function App() {
         <nav>
           <ul>
             <li><Link to="/">Головна</Link></li>
+            <li><Link to="/community">Спільнота</Link></li>
             <li><Link to="/about">Про платформу</Link></li>
           </ul>
         </nav>
@@ -228,6 +230,8 @@ function App() {
           )}
         />
         <Route path="/about" element={<About />} />
+        <Route path="/community" element={<Community user={user} goToAuth={goToAuth} />} />
+        <Route path="/community/:uid" element={<Community user={user} goToAuth={goToAuth} />} />
         <Route
           path="/goal/:goalId"
           element={(

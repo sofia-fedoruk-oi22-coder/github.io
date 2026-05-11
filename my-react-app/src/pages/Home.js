@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import GoalCard from '../components/GoalCard';
 import Progress from '../components/Progress';
-import Community from '../components/Community';
 import useGoals from '../hooks/useGoals';
 
 const DAILY_REMINDER_KEY = 'daily-goals-reminder-date';
@@ -16,7 +16,6 @@ function Home({ user, goToAuth }) {
   } = useGoals(user);
 
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showCommunity, setShowCommunity] = useState(true);
   const [showDailyReminder, setShowDailyReminder] = useState(false);
   const [reminderInfo, setReminderInfo] = useState('⏰ Нагадування надсилається 1 раз на добу.');
   const [newGoal, setNewGoal] = useState({
@@ -125,7 +124,7 @@ function Home({ user, goToAuth }) {
           <li><a href="#goals" onClick={(event) => scrollToSection(event, 'goals')}>Мої цілі</a></li>
           <li><a href="#add-goal" onClick={(event) => scrollToSection(event, 'add-goal')}>Додати ціль</a></li>
           <li><a href="#progress" onClick={(event) => scrollToSection(event, 'progress')}>Прогрес</a></li>
-          <li><a href="#community" onClick={(event) => scrollToSection(event, 'community')}>Спільнота</a></li>
+          <li><Link to="/community">Спільнота</Link></li>
         </ul>
       </nav>
 
@@ -255,19 +254,6 @@ function Home({ user, goToAuth }) {
         <p>{reminderInfo}</p>
       </section>
 
-      <button
-        id="toggle-community"
-        className="btn-submit community-toggle"
-        type="button"
-        onClick={() => setShowCommunity((prev) => !prev)}
-      >
-        Показати / приховати спільноту
-      </button>
-
-      <section id="community" style={{ display: showCommunity ? 'block' : 'none' }}>
-        <h2>Спільнота</h2>
-        <Community />
-      </section>
     </main>
   );
 }
