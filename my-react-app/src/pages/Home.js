@@ -19,6 +19,7 @@ function Home({ user, goToAuth }) {
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [showCommunity, setShowCommunity] = useState(true);
+  const [showDailyReminder, setShowDailyReminder] = useState(false);
   const [reminderInfo, setReminderInfo] = useState('⏰ Нагадування надсилається 1 раз на добу.');
   const [newGoal, setNewGoal] = useState({
     title: '',
@@ -27,7 +28,6 @@ function Home({ user, goToAuth }) {
     image: '',
     stepsText: '',
   });
-  const [serverMessage, setServerMessage] = useState('');
   const [protectedData, setProtectedData] = useState(null);
   const [protectedError, setProtectedError] = useState('');
 
@@ -45,7 +45,7 @@ function Home({ user, goToAuth }) {
 
       if (lastReminderDate !== today) {
         console.log('⏰ Щоденне нагадування: не забувай про свої цілі!');
-        alert('🔥 Нагадування дня: зроби хоча б один крок до своєї цілі!');
+        setShowDailyReminder(true);
         localStorage.setItem(DAILY_REMINDER_KEY, today);
         setReminderInfo('✅ Сьогоднішнє нагадування вже надіслано.');
         return;
@@ -58,16 +58,6 @@ function Home({ user, goToAuth }) {
     const dailyCheck = setInterval(runDailyReminder, 60 * 60 * 1000);
 
     return () => clearInterval(dailyCheck);
-  }, []);
-
-  useEffect(() => {
-    fetch(apiUrl('/api/message'))
-      .then((response) => response.json())
-      .then((data) => setServerMessage(data.message))
-      .catch((err) => {
-        console.error('Failed to fetch /api/message', err);
-        setServerMessage("Не вдалося зв'язатися з сервером");
-      });
   }, []);
 
   const fetchProtected = async () => {
@@ -169,10 +159,14 @@ function Home({ user, goToAuth }) {
         </ul>
       </nav>
 
-      {serverMessage ? (
-        <section id="backend-message">
-          <p className="server-message">Сервер: {serverMessage}</p>
-        </section>
+      {showDailyReminder ? (
+        <div className="reminder-modal-backdrop" role="presentation">
+          <div className="reminder-modal" role="dialog" aria-modal="true" aria-labelledby="daily-reminder-title">
+            <h2 id="daily-reminder-title">Нагадування дня</h2>
+            <p>🔥 Зроби хоча б один крок до своєї цілі!</p>
+            <button className="btn-submit" type="button" onClick={() => setShowDailyReminder(false)}>OK</button>
+          </div>
+        </div>
       ) : null}
 
       {user ? (
