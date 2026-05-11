@@ -111,9 +111,10 @@ export default function useGoals(user) {
 
       // Додати ID цілі до списку користувача
       const userRef = doc(firestoreDb, 'users', user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
+        email: user.email || '',
         goalsIds: arrayUnion(goalId),
-      });
+      }, { merge: true });
 
       // Додати ціль в локальний стан
       const createdGoal = {
@@ -228,9 +229,9 @@ export default function useGoals(user) {
 
       // Видалити ID цілі зі списку користувача
       const userRef = doc(firestoreDb, 'users', user.uid);
-      await updateDoc(userRef, {
+      await setDoc(userRef, {
         goalsIds: arrayRemove(goalId),
-      });
+      }, { merge: true });
 
       // Оновити локальний стан
       setGoals((prevGoals) => prevGoals.filter((goal) => goal.id !== goalId));

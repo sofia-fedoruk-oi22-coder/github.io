@@ -9,6 +9,7 @@ const firebaseConfig = {
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId: "YOUR_APP_ID",
   measurementId: "YOUR_MEASUREMENT_ID",
+  firestoreDatabaseId: "peopledb",
   // databaseURL: "https://your-project-id.firebaseio.com", // optional
 };
 

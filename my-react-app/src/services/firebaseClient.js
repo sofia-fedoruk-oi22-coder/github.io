@@ -50,7 +50,9 @@ export const missingFirebaseVars = Object.entries({
 export const firebaseApp = hasFirebaseConfig ? initializeApp(firebaseConfig) : null;
 export const auth = firebaseApp ? getAuth(firebaseApp) : null;
 
-const firestoreDatabaseId = process.env.REACT_APP_FIREBASE_FIRESTORE_DATABASE_ID || '';
+export const firestoreDatabaseId = process.env.REACT_APP_FIREBASE_FIRESTORE_DATABASE_ID
+  || localConfig.firestoreDatabaseId
+  || '';
 export const firestoreDb = firebaseApp
   ? (firestoreDatabaseId ? getFirestore(firebaseApp, firestoreDatabaseId) : getFirestore(firebaseApp))
   : null;
