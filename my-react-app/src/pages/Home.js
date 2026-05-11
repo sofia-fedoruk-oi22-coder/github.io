@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import GoalCard from '../components/GoalCard';
 import Progress from '../components/Progress';
 import { CommunityPreview } from '../components/Community';
@@ -125,7 +124,7 @@ function Home({ user, goToAuth }) {
           <li><a href="#goals" onClick={(event) => scrollToSection(event, 'goals')}>Мої цілі</a></li>
           <li><a href="#add-goal" onClick={(event) => scrollToSection(event, 'add-goal')}>Додати ціль</a></li>
           <li><a href="#progress" onClick={(event) => scrollToSection(event, 'progress')}>Прогрес</a></li>
-          <li><Link to="/community">Спільнота</Link></li>
+          <li><a href="#community" onClick={(event) => scrollToSection(event, 'community')}>Спільнота</a></li>
         </ul>
       </nav>
 
